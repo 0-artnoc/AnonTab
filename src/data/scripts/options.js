@@ -15,9 +15,8 @@ function setBoxShadowColor (color) {
  * @return void.
  */
 function saveOptions() {
-    var proxyUri = proxyInpt.value;
     chrome.storage.local.set({
-        proxy: proxyUri
+        proxy: proxyInpt.value
     });
 }
 
@@ -65,15 +64,25 @@ function updateStatus(message, isPersistent) {
     }
 }
 
-
-/**
- * Change the current proxy server to a new one.
- * @return void.
- */
-function updateProxy() {
-    var isValid = false;
+document.addEventListener('DOMContentLoaded', restoreOptions);
+document.getElementById('reset').addEventListener('click', function(ev) {
+    restoreOptions(true);
+    saveOptions();
+    updateStatus('Options reset.');
+    setBoxShadowColor('white');
+    ev.preventDefault();
+});
+document.getElementById('form').addEventListener('submit', function(ev) {
     var proxy = proxyInpt.value;
     var xhrReq = new XMLHttpRequest();
+    /**
+     * Indicate a validation error.
+     * @return void.
+     */
+    var showError = function() {
+        updateStatus("Couldn't validate proxy server.");
+        setBoxShadowColor('red');
+    };
     setBoxShadowColor('yellow');
     updateStatus('Validating proxy...', true);
     xhrReq.onload = function() {
@@ -81,25 +90,12 @@ function updateProxy() {
             saveOptions();
             updateStatus('Changes saved.');
             setBoxShadowColor('green');
+        } else {
+            showError();
         }
     };
-    xhrReq.onerror = function() {
-        updateStatus("Couldn't validate proxy server.");
-        setBoxShadowColor('red');
-    }
+    xhrReq.onerror = showError;
     xhrReq.open('GET', proxy + 'http://example.com');
     xhrReq.send();
-}
-
-document.getElementById('form').addEventListener('submit', function(ev) {
-        updateProxy();
-        ev.preventDefault();
+    ev.preventDefault();
 });
-document.getElementById('reset').addEventListener('click', function(ev) {
-        restoreOptions(true);
-        saveOptions();
-        updateStatus('Options reset.');
-        setBoxShadowColor('white');
-        ev.preventDefault();
-});
-document.addEventListener('DOMContentLoaded', restoreOptions);
