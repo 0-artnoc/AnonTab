@@ -220,8 +220,8 @@ function loadResource(resourceUrl, type, isTldResource) {
             } else {
                 if (isTldResource) {
                     alert('HTTPError: ' + this.status + ' ' + this.statusText);
+                    parseResponse();
                 }
-                parseResponse();
             }
             setTimeout(function() {
                 isLoading = false;
