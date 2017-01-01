@@ -15,7 +15,7 @@ function setBoxShadowColor (color) {
  * @return void.
  */
 function saveOptions() {
-    var proxy = proxyInpt.value;
+    var proxyUri = proxyInpt.value;
     chrome.storage.local.set({
         proxy: proxyUri
     });
