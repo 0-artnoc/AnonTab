@@ -65,25 +65,15 @@ function updateStatus(message, isPersistent) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
-document.getElementById('reset').addEventListener('click', function(ev) {
-    restoreOptions(true);
-    saveOptions();
-    updateStatus('Options reset.');
-    setBoxShadowColor('white');
-    ev.preventDefault();
-});
-document.getElementById('form').addEventListener('submit', function(ev) {
+
+/**
+ * Change the current proxy server to a new one.
+ * @return void.
+ */
+function updateProxy() {
+    var isValid = false;
     var proxy = proxyInpt.value;
     var xhrReq = new XMLHttpRequest();
-    /**
-     * Indicate a validation error.
-     * @return void.
-     */
-    var showError = function() {
-        updateStatus("Couldn't validate proxy server.");
-        setBoxShadowColor('red');
-    };
     setBoxShadowColor('yellow');
     updateStatus('Validating proxy...', true);
     xhrReq.onload = function() {
@@ -91,12 +81,25 @@ document.getElementById('form').addEventListener('submit', function(ev) {
             saveOptions();
             updateStatus('Changes saved.');
             setBoxShadowColor('green');
-        } else {
-            showError();
         }
     };
-    xhrReq.onerror = showError;
+    xhrReq.onerror = function() {
+        updateStatus("Couldn't validate proxy server.");
+        setBoxShadowColor('red');
+    }
     xhrReq.open('GET', proxy + 'http://example.com');
     xhrReq.send();
-    ev.preventDefault();
+}
+
+document.getElementById('form').addEventListener('submit', function(ev) {
+        updateProxy();
+        ev.preventDefault();
 });
+document.getElementById('reset').addEventListener('click', function(ev) {
+        restoreOptions(true);
+        saveOptions();
+        updateStatus('Options reset.');
+        setBoxShadowColor('white');
+        ev.preventDefault();
+});
+document.addEventListener('DOMContentLoaded', restoreOptions);
