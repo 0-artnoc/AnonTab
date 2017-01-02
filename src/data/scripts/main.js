@@ -290,6 +290,7 @@ function initNav(ev) {
         navigate(linkUrl);
     }
     if (ev.type === 'submit') {
+        navBar.scrollLeft = 0;
         ev.preventDefault();
     }
 }
