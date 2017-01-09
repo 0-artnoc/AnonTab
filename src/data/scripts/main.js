@@ -121,6 +121,22 @@ function changeBorderColor(color, loadingFlag) {
 };
 
 /**
+ * Proxify both relative and absolute URIs.
+ * @param uri {string}, a URI string.
+ * @return {string}, a proxified URL string.
+ */
+function proxUri(uri) {
+    var baseURL = navBar.value;
+    var hostRe = /\w+:\/\/[^\/]+/;
+    uri = /^\w+:\/\//.test(uri) ? uri :
+          uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
+          uri.startsWith('/') ? baseURL.match(hostRe) + uri :
+          baseURL.match(hostRe) + '/' + uri;
+    uri = new URL(uri);
+    return proxy + encodeURIComponent(uri);
+};
+
+/**
  * Load an external Web resource.
  * @param resourceUrl {string}, the URL of the resource.
  * @param type {string} optional, the type of the resource.
@@ -129,8 +145,7 @@ function changeBorderColor(color, loadingFlag) {
  */
 function loadResource(resourceUrl, type, isTldResource) {
     'use strict';
-    var url = proxy + encodeURIComponent(resourceUrl);
-    var exts = /(?:\.(?:s?html?|php|(?:j|a)spx?|p(?:y|l)|c(?:gi|ss)|js(?:on)?|txt|cfml?)|:\/\/.+?\/(?:[^.?#]*|[^a-z?#]*))(?:[?#].*)?$/;
+    var url = proxUri(resourceUrl);
     /**
      * Fetch an external resource.
      * @param type {string}, the type of the resource.
@@ -162,10 +177,10 @@ function loadResource(resourceUrl, type, isTldResource) {
                         responseText = '<style>' + responseText + '</style>';
                     }
                     // Proxify all markup.
-                    markup = proxify(responseText, proxy, resourceUrl);
+                    markup = proxify(responseText, proxy);
                     /* Pass the markup to the viewer. */
                     if (type === 'styles') {
-                        passData('styles', markup, navbar.value);
+                        passData('styles', markup);
                     } else {
                         passData('document', markup);
                         if (/#.+/.test(resourceUrl)) {
@@ -239,7 +254,7 @@ function loadResource(resourceUrl, type, isTldResource) {
     if (typeof type === 'string') {
         fetch(type);
     // Is it a document?
-    } else if (exts.test(resourceUrl)) {
+    } else if (/(?:\.(?:s?html?|php|(?:j|a)spx?|p(?:y|l)|c(?:gi|ss)|js(?:on)?|txt|cfml?)|:\/\/.+?\/(?:[^.?#]*|[^a-z?#]*))(?:[?#].*)?$/.test(resourceUrl)) {
         fetch('text');
     // Perhaps an image?
     } else if (/\.(?:jpe?g|png|gif|svg|bmp|ico)(?:[?#].*)?$/i.test(resourceUrl)) {

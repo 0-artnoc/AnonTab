@@ -2,10 +2,9 @@
  * Enforce a given proxy on all document elements upon sanitization.
  * @param raw {string}, raw HTML markup.
  * @param proxy {string}, a proxy endpoint.
- * @param baseURL {string}, a base document URL.
  * @return {string}, a markup string.
  */
-function proxify(raw, proxy, baseURL) {
+function proxify(raw, proxy) {
     'use strict';
     var clean;
     // DOMPurify's config.
@@ -13,31 +12,6 @@ function proxify(raw, proxy, baseURL) {
         ADD_TAGS: ['link', 'video', 'audio'],
         FORBID_ATTR: ['xlink:href'],
         WHOLE_DOCUMENT: true
-    };
-
-    /**
-     * Proxify both relative and absolute URIs.
-     * @param uri {string}, a URI string.
-     * @return {string}, a proxified URL string.
-     */
-    var proxUri = function(uri) {
-        var hostRe = /\w+:\/\/[^\/]+/;
-        uri = /^\w+:\/\//.test(uri) ? uri :
-              uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
-              uri.startsWith('/') ? baseURL.match(hostRe) + uri :
-              baseURL.match(hostRe) + '/' + uri;
-        uri = new URL(uri);
-        return proxy + encodeURIComponent(uri);
-    };
-
-    /**
-     * Fetch external CSS styles.
-     * @param src {string}, a URI string.
-     * @return void.
-     */
-    var fetchStyles = function(src) {
-        src = proxUri(src);
-        window.loadResource(src, 'text/css');
     };
 
     /**
@@ -57,7 +31,7 @@ function proxify(raw, proxy, baseURL) {
             pVal = styles[styles[pIndex]] || '';
             if (pVal.match(regex)) {
                 src = regex.exec(pVal)[1];
-                pVal = pVal.replace(regex, '$1' + proxUri(src));
+                pVal = pVal.replace(regex, '$1' + window.proxUri(src));
                 output.push(prop + ':' + pVal + ';');
                 regex.lastIndex = 0;
             } else {
@@ -123,7 +97,7 @@ function proxify(raw, proxy, baseURL) {
                 case rule.IMPORT_RULE:
                     importSrc = rule.href;
                     if (importSrc) {
-                        fetchStyles(importSrc);
+                        window.loadResource(importSrc, 'text/css');
                     }
                     break;
             }
@@ -135,7 +109,7 @@ function proxify(raw, proxy, baseURL) {
         var cssRules, output;
         if (data.tagName === 'link') {
             if (node.getAttribute('rel') === 'stylesheet') {
-                fetchStyles(node.getAttribute('href'));
+                window.loadResource(node.getAttribute('href'), 'text/css');
             }
             node.parentNode.removeChild(node);
         } else if (data.tagName === 'style' && node.sheet) {
@@ -156,7 +130,7 @@ function proxify(raw, proxy, baseURL) {
             if (/^(#|data:)/i.test(uri)) {
                 return uri;
             } else {
-                return proxUri(uri);
+                return window.proxUri(uri);
             }
         };
         // Attributes to proxify.
