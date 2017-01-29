@@ -231,10 +231,10 @@ function loadResource(resourceUrl, type, isTlResource) {
                 // Just continue on a missing content-type header.
             }
             if (this.status === 200) {
-                if (type === 'text') {
-                    parseResponse();
-                } else if (type === 'text/css') {
+                if (type === 'text/css') {
                     parseResponse('styles');
+                } else {
+                    parseResponse();
                 }
             } else if (isTlResource) {
                 alert('HTTPError: ' + this.status + ' ' + this.statusText);
