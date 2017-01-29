@@ -1,5 +1,5 @@
 /**
- * Enforce a given proxy on all document elements upon sanitization.
+ * Enforce a given proxy on all markup elements upon sanitization.
  * @param raw {string}, raw HTML markup.
  * @param proxy {string}, a proxy endpoint.
  * @return {string}, a markup string.

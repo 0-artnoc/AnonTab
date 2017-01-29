@@ -5,7 +5,8 @@ var navBar = document.getElementById('navbar');
 var hstsList = ['*.wikipedia.org', '*.twitter.com', '*.github.com',
                 '*.facebook.com', '*.torproject.org'];
 chrome.storage.local.get({
-    proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?container=fbk&url='
+    proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?container=' +
+        'fbk&url='
 }, function(items) {
     proxy = items.proxy;
 });
@@ -118,7 +119,7 @@ function changeBorderColor(color, loadingFlag) {
         }, 800);
     }
     viewer.style.borderColor = color;
-};
+}
 
 /**
  * Proxify both relative and absolute URIs.
@@ -134,18 +135,22 @@ function proxUri(uri) {
           baseURL.match(hostRe) + '/' + uri;
     uri = new URL(uri);
     return proxy + encodeURIComponent(uri);
-};
+}
 
 /**
  * Load an external Web resource.
  * @param resourceUrl {string}, the URL of the resource.
  * @param type {string} optional, the type of the resource.
- * @param isTldResource {boolean} optional, determines if it is a top-level resource.
+ * @param isTlResource {boolean} optional, flags top-level resources.
  * @return void.
  */
-function loadResource(resourceUrl, type, isTldResource) {
+function loadResource(resourceUrl, type, isTlResource) {
     'use strict';
     var url = proxUri(resourceUrl);
+    var imgRe = /\\.(?:jpe?g|png|gif|svg|bmp|ico)(?:[?#].*)?$/;
+    var docRe = new RegExp(['(?:\\.(?:s?html?|php|(?:j|a)spx?|p(?:y|l)|',
+                            'c(?:gi|ss)|js(?:on)?|txt|cfml?)|://.+?',
+                            '/(?:[^.?#]*|[^a-z?#]*))(?:[?#].*)?$'].join(''));
     /**
      * Fetch an external resource.
      * @param type {string}, the type of the resource.
@@ -155,7 +160,7 @@ function loadResource(resourceUrl, type, isTldResource) {
         var xhrReq = new XMLHttpRequest();
         xhrReq.responseType = (type === 'resource') ? 'blob' : 'text';
         xhrReq.onerror = function() {
-            if (isLoading && isTldResource) {
+            if (isLoading && isTlResource) {
                 alert('NetworkError: A network error occurred.');
             }
             setTimeout(function() {
@@ -172,27 +177,25 @@ function loadResource(resourceUrl, type, isTldResource) {
             var parseResponse = function(type) {
                 var markup;
                 var responseText = xhrReq.responseText;
-                try {
-                    if (type === 'styles') {
-                        responseText = '<style>' + responseText + '</style>';
+                if (type === 'styles') {
+                    responseText = '<style>' + responseText + '</style>';
+                }
+                // Proxify all markup.
+                markup = proxify(responseText, proxy);
+                /* Pass the markup to the viewer. */
+                if (type === 'styles') {
+                    passData('styles', markup);
+                } else {
+                    passData('document', markup);
+                    if (/#.+/.test(resourceUrl)) {
+                        // Scroll to a given page anchor.
+                        navigate('#' + resourceUrl.match(/#.+/));
                     }
-                    // Proxify all markup.
-                    markup = proxify(responseText, proxy);
-                    /* Pass the markup to the viewer. */
-                    if (type === 'styles') {
-                        passData('styles', markup);
-                    } else {
-                        passData('document', markup);
-                        if (/#.+/.test(resourceUrl)) {
-                            // Scroll to a given page anchor.
-                            navigate('#' + resourceUrl.match(/#.+/));
-                        }
-                    }
-                } catch (e) {}
+                }
             };
             try {
                 responseType = this.getResponseHeader('Content-Type');
-                if (isTldResource && responseType.indexOf(type) !== 0) {
+                if (isTlResource && responseType.indexOf(type) !== 0) {
                     responseType = responseType.match(/^\w*/).toString();
                     if (responseType === 'text') {
                         fetch('text');
@@ -211,7 +214,9 @@ function loadResource(resourceUrl, type, isTldResource) {
                         return;
                     }
                 }
-            } catch (e) {}
+            } catch (e) {
+                // Just continue on a missing content-type header.
+            }
             if (this.status === 200) {
                 if (type === 'text') {
                     parseResponse();
@@ -221,9 +226,7 @@ function loadResource(resourceUrl, type, isTldResource) {
                     file = this.response;
                     if (file.size >= 9000000) {
                         assert = confirm('Too large resource! Proceed anyway?');
-                        if (!assert) {
-                            return;
-                        }
+                        if (!assert) { return; }
                     }
                     reader = new FileReader();
                     reader.readAsDataURL(file);
@@ -232,11 +235,9 @@ function loadResource(resourceUrl, type, isTldResource) {
                     };
 
                 }
-            } else {
-                if (isTldResource) {
-                    alert('HTTPError: ' + this.status + ' ' + this.statusText);
-                    parseResponse();
-                }
+            } else if (isTlResource) {
+                alert('HTTPError: ' + this.status + ' ' + this.statusText);
+                parseResponse();
             }
             setTimeout(function() {
                 isLoading = false;
@@ -254,10 +255,10 @@ function loadResource(resourceUrl, type, isTldResource) {
     if (typeof type === 'string') {
         fetch(type);
     // Is it a document?
-    } else if (/(?:\.(?:s?html?|php|(?:j|a)spx?|p(?:y|l)|c(?:gi|ss)|js(?:on)?|txt|cfml?)|:\/\/.+?\/(?:[^.?#]*|[^a-z?#]*))(?:[?#].*)?$/.test(resourceUrl)) {
+    } else if (docRe.test(resourceUrl)) {
         fetch('text');
     // Perhaps an image?
-    } else if (/\.(?:jpe?g|png|gif|svg|bmp|ico)(?:[?#].*)?$/i.test(resourceUrl)) {
+    } else if (imgRe.test(resourceUrl)) {
         passData('img', url);
     // Maybe some audio file?
     } else if (/\.(?:mp3|wav|ogg)(?:[?#].*)?$/i.test(resourceUrl)) {

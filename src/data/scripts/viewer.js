@@ -8,7 +8,7 @@ var docHref = location.hash;
  */
 function communicate(data) {
     'use strict';
-    var target, _target, styleEl;
+    var styleEl;
     var proxy = data.proxyUrl;
     var type = data.dataType;
     var dataVal = data.dataVal;
