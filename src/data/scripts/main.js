@@ -175,22 +175,35 @@ function loadResource(resourceUrl, type, isTlResource) {
              * @return void.
              */
             var parseResponse = function(type) {
-                var markup;
-                var responseText = xhrReq.responseText;
-                if (type === 'styles') {
-                    responseText = '<style>' + responseText + '</style>';
-                }
-                // Proxify all markup.
-                markup = proxify(responseText, proxy);
-                /* Pass the markup to the viewer. */
-                if (type === 'styles') {
-                    passData('styles', markup);
-                } else {
-                    passData('document', markup);
-                    if (/#.+/.test(resourceUrl)) {
-                        // Scroll to a given page anchor.
-                        navigate('#' + resourceUrl.match(/#.+/));
+                var markup, responseText;
+                if (xhrReq.responseType === 'text') {
+                    responseText = xhrReq.responseText;
+                    if (type === 'styles') {
+                        responseText = '<style>' + responseText + '</style>';
                     }
+                    // Proxify all markup.
+                    markup = proxify(responseText, proxy);
+                    /* Pass the markup to the viewer. */
+                    if (type === 'styles') {
+                        passData('styles', markup);
+                    } else {
+                        passData('document', markup);
+                        if (/#.+/.test(resourceUrl)) {
+                            // Scroll to a given page anchor.
+                            navigate('#' + resourceUrl.match(/#.+/));
+                        }
+                    }
+                } else {
+                    file = xhrReq.response;
+                    if (file.size >= 9000000) {
+                        assert = confirm('Too large resource! Proceed anyway?');
+                        if (!assert) { return; }
+                    }
+                    reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onloadend = function() {
+                        passData('resource', reader.result);
+                    };
                 }
             };
             try {
@@ -222,18 +235,6 @@ function loadResource(resourceUrl, type, isTlResource) {
                     parseResponse();
                 } else if (type === 'text/css') {
                     parseResponse('styles');
-                } else {
-                    file = this.response;
-                    if (file.size >= 9000000) {
-                        assert = confirm('Too large resource! Proceed anyway?');
-                        if (!assert) { return; }
-                    }
-                    reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onloadend = function() {
-                        passData('resource', reader.result);
-                    };
-
                 }
             } else if (isTlResource) {
                 alert('HTTPError: ' + this.status + ' ' + this.statusText);
