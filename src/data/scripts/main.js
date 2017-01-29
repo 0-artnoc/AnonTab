@@ -192,7 +192,7 @@ function loadResource(resourceUrl, type, isTldResource) {
             };
             try {
                 responseType = this.getResponseHeader('Content-Type');
-                if (responseType.indexOf(type) !== 0) {
+                if (isTldResource && responseType.indexOf(type) !== 0) {
                     responseType = responseType.match(/^\w*/).toString();
                     if (responseType === 'text') {
                         fetch('text');
