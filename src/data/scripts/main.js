@@ -14,10 +14,9 @@ chrome.storage.local.get({
 /**
  * Normalize a given URL.
  * @param url {string}, a URI string.
- * @param isSilent {boolean}, prevents function alerts.
  * @return {string}, either a normalized URL or an empty string.
  */
-function normalizeURL(url, isSilent) {
+function normalizeURL(url) {
     'use strict';
     /**
      * Enforce HSTS for all predefined compatible domains.
@@ -47,11 +46,9 @@ function normalizeURL(url, isSilent) {
     try {
         url = new URL(url);
     } catch (e) {
-        if (!isSilent) {
-            setTimeout(function() {
-                alert('Error: "' + url + '" is not a valid URL.');
-            }, 100);
-        }
+        setTimeout(function() {
+            alert('Error: "' + url + '" is not a valid URL.');
+        }, 100);
         return '';
     }
     return mkHstsCompat(url);
@@ -65,8 +62,8 @@ function normalizeURL(url, isSilent) {
  */
 function passData(type, data) {
     'use strict';
-    viewer.contentWindow.communicate(
-        {proxyUrl: proxy, dataType: type, dataVal: data}
+    viewer.contentWindow.postMessage(
+        {proxyUrl: proxy, dataType: type, dataVal: data}, '*'
     );
 }
 
@@ -273,14 +270,28 @@ function loadResource(resourceUrl, type, isTlResource) {
 }
 
 /**
- * Handle sent and received data from other scripts.
- * @param data {object}, a data container object.
+ * Handle all messages sent from the viewer window.
+ * @param msgEv {object}, a message event.
  * @return void.
  */
-function communicate(data) {
+window.onmessage = function (msgEv) {
     'use strict';
-    var type = data.type;
-    var linkUrl = normalizeURL(data.linkUrl);
+    var type, linkUrl, spinner;
+    var data = msgEv.data;
+    spinner = data.spinner;
+    if (spinner) {
+        switch (spinner) {
+            case 'on':
+                changeBorderColor('green', true);
+                break;
+            case 'off':
+                isLoading = false;
+                break;
+        }
+        return;
+    }
+    type = data.type;
+    linkUrl = normalizeURL(data.linkUrl);
     if (linkUrl) {
         // Reset the view.
         passData('', '');

@@ -1,17 +1,29 @@
-// Document's current location.
-var docHref = location.hash;
+// A reference to the current origin
+var origin = location.origin;
 
 /**
- * Handle sent and received data from other scripts.
- * @param data {object}, a container object.
+ * Pass all given data to the parent.
+ * @param data {object}, a data container object.
  * @return void.
  */
-function communicate(data) {
+function passData(data) {
+    'use strict';
+    parent.postMessage(data, origin);
+}
+
+/**
+ * Handle all messages sent from the main window.
+ * @param msgEv {object}, a message event.
+ * @return void.
+ */
+window.onmessage = function (msgEv) {
     'use strict';
     var styleEl;
+    var data = msgEv.data;
     var proxy = data.proxyUrl;
     var type = data.dataType;
     var dataVal = data.dataVal;
+    var msgOrigin = msgEv.origin || msgEv.originalEvent.origin;
     /**
      * Modify the `innerHTML` property of the body element.
      * @param data {string}, some HTML markup or a data URL.
@@ -110,17 +122,19 @@ function communicate(data) {
         el.src = url;
         el.controls = true;
         el.onload = function() {
-            parent.isLoading = false;
+            passData({spinner: 'off'});
         };
         el.onerror = function() {
             url = decodeURIComponent(url.replace(proxy, ''));
-            parent.communicate({linkUrl: url, type: 'text'});
+            passData({linkUrl: url, type: 'text'});
         };
         setBody('');
         document.body.appendChild(el);
-        parent.isLoading = true;
-        parent.changeBorderColor('green', true);
+        passData({spinner: 'on'});
     };
+    if (msgOrigin !== origin) {
+        return;
+    }
     if (type === 'document') {
         setBody(dataVal);
         linkify();
@@ -146,14 +160,17 @@ function communicate(data) {
     }
 }
 
+/**
+ * Handle user navigations.
+ * @return void.
+ */
 window.onhashchange = function() {
     'use strict';
     var anchor;
     var hash = location.hash.slice(1);
     if (hash) {
         if (hash.indexOf('#') !== 0) {
-            parent.communicate({linkUrl: hash});
-            docHref = parent.normalizeURL(hash, true);
+            passData({linkUrl: hash});
         } else {
             anchor = document.getElementsByName(hash.slice(1))[0];
             if (typeof anchor === 'object') {
@@ -163,7 +180,10 @@ window.onhashchange = function() {
     }
 };
 
-// A defense in depth against redirections.
+/**
+ * Stop any redirections.
+ * @return void.
+ */
 window.onunload = function() {
     'use strict';
     window.stop();
