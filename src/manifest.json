@@ -18,6 +18,10 @@
       "page": "options.html",
       "open_in_tab": true
   },
+  "web_accessible_resources": [
+      "data/scripts/viewer.js",
+      "viewer.html"
+  ],
   "permissions": [
      "contextMenus",
      "storage"
