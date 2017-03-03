@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.4';
+    DOMPurify.version = '0.8.5';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -445,7 +445,7 @@
 
     /**
      * _isNode
-     * 
+     *
      * @param object to check whether it's a DOM node
      * @return true is object is a DOM node
      */
@@ -565,7 +565,7 @@
         while (l--) {
             attr = attributes[l];
             name = attr.name;
-            value = attr.value;
+            value = attr.value.trim();
             lcName = name.toLowerCase();
 
             /* Execute a hook if present */
@@ -734,7 +734,7 @@
            DO NOT return early, as this will return the wrong type if
            the user has requested a DOM object rather than a string */
         if (!dirty) {
-            dirty = '';
+            dirty = '<!-->';
         }
 
         /* Stringify, in case dirty is an object */
