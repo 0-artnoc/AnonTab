@@ -14,17 +14,19 @@ function communicate(data) {
     var dataVal = data.dataVal;
     /**
      * Modify the `innerHTML` property of the body element.
-     * @param data {string}, a markup string.
-     * @param reset {boolean}, a flag to reset the body.
+     * @param data {string}, some HTML markup or a data URL.
+     * @param isResource {boolean} optional, flags resources' data.
      * @return void.
      */
-    var setBody = function(dataVal, reset) {
+    var setBody = function(dataVal, isResource) {
         var body = document.body;
-        if (reset === true) {
-            body.innerHTML = '';
+        if (isResource) {
+            body.textContent = dataVal;
+            body.style.wordWrap = 'break-word';
+        } else {
             body.style.wordWrap = 'initial';
+            body.innerHTML = dataVal;
         }
-        body.innerHTML += dataVal;
     };
     /**
      * Prefix all links by '#'.
@@ -114,13 +116,13 @@ function communicate(data) {
             url = decodeURIComponent(url.replace(proxy, ''));
             parent.communicate({linkUrl: url, type: 'text'});
         };
-        setBody('', true);
+        setBody('');
         document.body.appendChild(el);
         parent.isLoading = true;
         parent.changeBorderColor('green', true);
     };
     if (type === 'document') {
-        setBody(dataVal, true);
+        setBody(dataVal);
         linkify();
         formify();
     } else if (type === 'styles') {
@@ -133,7 +135,6 @@ function communicate(data) {
         viewMedia(dataVal, type);
     } else if (type === 'resource') {
         setBody(dataVal, true);
-        document.body.style.wordWrap = 'break-word';
     } else if (type === 'href') {
         if (dataVal === location.hash.slice(1)) {
             // Reset the hash silently.
@@ -141,7 +142,7 @@ function communicate(data) {
         }
         location.hash = dataVal;
     } else {
-        setBody('', true);
+        setBody('');
     }
 }
 
