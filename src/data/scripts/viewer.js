@@ -152,13 +152,13 @@ window.onmessage = function (msgEv) {
     } else if (type === 'href') {
         if (dataVal === location.hash.slice(1)) {
             // Reset the hash silently.
-            history.pushState(null, null, '#');
+            history.replaceState(null, null, '#');
         }
         location.hash = dataVal;
     } else {
         setBody('');
     }
-}
+};
 
 /**
  * Handle user navigations.
@@ -178,13 +178,4 @@ window.onhashchange = function() {
             }
         }
     }
-};
-
-/**
- * Stop any redirections.
- * @return void.
- */
-window.onunload = function() {
-    'use strict';
-    window.stop();
 };
