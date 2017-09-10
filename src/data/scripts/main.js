@@ -8,8 +8,21 @@ chrome.storage.local.get({
     proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?container=' +
         'fbk&url='
 }, function(items) {
+    'use strict';
     proxy = items.proxy;
 });
+
+/**
+ * A thin wrapper for `chrome.history.deleteUrl`.
+ * @param uri {string}, a URL string.
+ * @return void.
+ */
+function deleteUrl(uri) {
+    'use strict';
+    setTimeout(function() {
+        chrome.history.deleteUrl({url: viewer.src + '#' + uri});
+    });
+}
 
 /**
  * Normalize a given URL.
@@ -68,11 +81,24 @@ function passData(type, data) {
 }
 
 /**
+ * Change current loading status.
+ * @return void.
+ */
+var changeLoadingStatus = function() {
+    setTimeout(function() {
+        isLoading = !isLoading;
+    });
+};
+
+/**
  * Terminate any ongoing connections.
  * @return void.
  */
 function stopLoading() {
-    isLoading = false;
+    'use strict';
+    if (isLoading) {
+        changeLoadingStatus();
+    }
     window.stop();
 }
 
@@ -89,6 +115,7 @@ function navigate(linkUrl) {
     if (linkUrl) {
         stopLoading();
         passData('href', linkUrl);
+        deleteUrl(linkUrl);
     }
 }
 
@@ -99,6 +126,7 @@ function navigate(linkUrl) {
  * @return void.
  */
 function changeBorderColor(color, loadingFlag) {
+    'use strict';
     var interval;
     if (loadingFlag) {
         interval = setInterval(function() {
@@ -124,6 +152,7 @@ function changeBorderColor(color, loadingFlag) {
  * @return {string}, a proxified URL string.
  */
 function proxUri(uri) {
+    'use strict';
     var baseURL = navBar.value;
     var hostRe = /\w+:\/\/[^\/]+/;
     uri = /^\w+:\/\//.test(uri) ? uri :
@@ -144,7 +173,7 @@ function proxUri(uri) {
 function loadResource(resourceUrl, type, isTlResource) {
     'use strict';
     var url = proxUri(resourceUrl);
-    var imgRe = /\\.(?:jpe?g|png|gif|svg|bmp|ico)(?:[?#].*)?$/;
+    var imgRe = /\.(?:jpe?g|png|gif|svg|bmp|ico)(?:[?#].*)?$/;
     var docRe = new RegExp(['(?:\\.(?:s?html?|php|(?:j|a)spx?|p(?:y|l)|',
                             'c(?:gi|ss)|js(?:on)?|txt|cfml?)|://.+?',
                             '/(?:[^.?#]*|[^a-z?#]*))(?:[?#].*)?$'].join(''));
@@ -160,9 +189,7 @@ function loadResource(resourceUrl, type, isTlResource) {
             if (isLoading && isTlResource) {
                 alert('NetworkError: A network error occurred.');
             }
-            setTimeout(function() {
-                isLoading = false;
-            });
+            changeLoadingStatus();
         };
         xhrReq.onload = function() {
             var assert, file, reader, responseType;
@@ -205,18 +232,23 @@ function loadResource(resourceUrl, type, isTlResource) {
             };
             try {
                 responseType = this.getResponseHeader('Content-Type');
-                if (isTlResource && responseType.indexOf(type) !== 0) {
-                    responseType = responseType.match(/^\w*/).toString();
-                    if (responseType === 'text') {
-                        fetch('text');
+                if (isTlResource &&
+                        (type !== 'text' && responseType.indexOf('text/html') === 0) ||
+                            (type === 'text' && responseType.indexOf('text') !== 0)) {
+                    if (responseType.indexOf('text') === 0) {
+                        if (responseType.indexOf('text/xml') === 0) {
+                            fetch('resource');
+                        } else {
+                            fetch('text');
+                        }
                         return;
-                    } else if (responseType === 'image') {
+                    } else if (responseType.indexOf('image') === 0) {
                         passData('img', url);
                         return;
-                    } else if (responseType === 'audio') {
+                    } else if (responseType.indexOf('audio') === 0) {
                         passData('audio', url);
                         return;
-                    } else if (responseType === 'video') {
+                    } else if (responseType.indexOf('video') === 0) {
                         passData('video', url);
                         return;
                     } else if (type !== 'resource') {
@@ -237,16 +269,12 @@ function loadResource(resourceUrl, type, isTlResource) {
                 alert('HTTPError: ' + this.status + ' ' + this.statusText);
                 parseResponse();
             }
-            setTimeout(function() {
-                isLoading = false;
-            });
+            changeLoadingStatus();
         };
         xhrReq.open('GET', url);
         if (!isLoading) {
-            setTimeout(function() {
-                isLoading = true;
-                changeBorderColor('green', true);
-            });
+            changeLoadingStatus();
+            changeBorderColor('green', true);
         }
         xhrReq.send();
     };
@@ -282,10 +310,11 @@ window.onmessage = function (msgEv) {
     if (spinner) {
         switch (spinner) {
             case 'on':
+                changeLoadingStatus();
                 changeBorderColor('green', true);
                 break;
             case 'off':
-                isLoading = false;
+                changeLoadingStatus();
                 break;
         }
         return;
@@ -303,7 +332,8 @@ window.onmessage = function (msgEv) {
         linkUrl = data.linkUrl;
     }
     navBar.value = linkUrl;
-}
+    deleteUrl(linkUrl);
+};
 
 /**
  * A proxy function for `navigate()`.
