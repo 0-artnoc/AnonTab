@@ -181,7 +181,7 @@ window.onhashchange = function() {
         } else {
             anchor = document.getElementsByName(hash.slice(1))[0];
             if (typeof anchor === 'object') {
-                anchor.scrollIntoView();
+                document.documentElement.scrollTop = anchor.offsetTop;
             }
         }
     }
