@@ -1,15 +1,16 @@
-var proxy;
+var proxy, hstsList;
 var isLoading = false;
 var viewer = document.getElementById('viewer');
 var navBar = document.getElementById('navbar');
-var hstsList = ['*.wikipedia.org', '*.twitter.com', '*.github.com',
-                '*.facebook.com', '*.torproject.org'];
 chrome.storage.local.get({
-    proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?container=' +
-        'fbk&url='
+    proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?' +
+        'container=fbk&url=',
+    hstsList: ['torproject.org', '*.torproject.org', '*.wikipedia.org',
+        '*.facebook.com', 'github.com', 'twitter.com']
 }, function(items) {
     'use strict';
     proxy = items.proxy;
+    hstsList = items.hstsList;
 });
 
 /**
@@ -20,7 +21,9 @@ chrome.storage.local.get({
 function deleteUrl(uri) {
     'use strict';
     setTimeout(function() {
-        chrome.history.deleteUrl({url: viewer.src + '#' + uri});
+        chrome.history.deleteUrl({
+            url: viewer.src + '#' + uri
+        });
     });
 }
 
@@ -43,7 +46,7 @@ function normalizeURL(url) {
          * @return {boolean}.
          */
         var isHstsCompat = function(domainPtrn) {
-            domainPtrn = domainPtrn.replace('*.', '^(?:[\\w.-]+\\.)?');
+            domainPtrn = domainPtrn.replace(/\./g, '\\.').replace(/\*/g, '[\\w.-]*');
             domainPtrn = new RegExp(domainPtrn);
             if (domainPtrn.test(url.hostname)) {
                 return true;
@@ -75,20 +78,24 @@ function normalizeURL(url) {
  */
 function passData(type, data) {
     'use strict';
-    viewer.contentWindow.postMessage(
-        {proxyUrl: proxy, dataType: type, dataVal: data}, '*'
-    );
+    viewer.contentWindow.postMessage({
+        proxyUrl: proxy,
+        dataType: type,
+        dataVal: data
+    }, '*');
 }
 
 /**
  * Change current loading status.
+ * @param bool {boolean}, a boolean for assignment.
  * @return void.
  */
-var changeLoadingStatus = function() {
+function changeLoadingStatus(bool) {
+    'use strict';
     setTimeout(function() {
-        isLoading = !isLoading;
+        isLoading = bool;
     });
-};
+}
 
 /**
  * Terminate any ongoing connections.
@@ -96,9 +103,7 @@ var changeLoadingStatus = function() {
  */
 function stopLoading() {
     'use strict';
-    if (isLoading) {
-        changeLoadingStatus();
-    }
+    changeLoadingStatus(false);
     window.stop();
 }
 
@@ -132,7 +137,7 @@ function changeBorderColor(color, loadingFlag) {
         interval = setInterval(function() {
             if (isLoading) {
                 changeBorderColor('red');
-                setTimeout(function () {
+                setTimeout(function() {
                     if (isLoading) {
                         changeBorderColor('green');
                     }
@@ -156,9 +161,9 @@ function proxUri(uri) {
     var baseURL = navBar.value;
     var hostRe = /\w+:\/\/[^\/]+/;
     uri = /^\w+:\/\//.test(uri) ? uri :
-          uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
-          uri.startsWith('/') ? baseURL.match(hostRe) + uri :
-          baseURL.match(hostRe) + '/' + uri;
+        uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
+        uri.startsWith('/') ? baseURL.match(hostRe) + uri :
+        baseURL.match(hostRe) + '/' + uri;
     uri = new URL(uri);
     return proxy + encodeURIComponent(uri);
 }
@@ -189,7 +194,7 @@ function loadResource(resourceUrl, type, isTlResource) {
             if (isLoading && isTlResource) {
                 alert('NetworkError: A network error occurred.');
             }
-            changeLoadingStatus();
+            changeLoadingStatus(false);
         };
         xhrReq.onload = function() {
             var assert, file, reader, responseType;
@@ -221,7 +226,9 @@ function loadResource(resourceUrl, type, isTlResource) {
                     file = xhrReq.response;
                     if (file.size >= 9000000) {
                         assert = confirm('Too large resource! Proceed anyway?');
-                        if (!assert) { return; }
+                        if (!assert) {
+                            return;
+                        }
                     }
                     reader = new FileReader();
                     reader.readAsDataURL(file);
@@ -234,7 +241,7 @@ function loadResource(resourceUrl, type, isTlResource) {
                 responseType = this.getResponseHeader('Content-Type');
                 if (isTlResource &&
                         (type !== 'text' && responseType.indexOf('text/html') === 0) ||
-                            (type === 'text' && responseType.indexOf('text') !== 0)) {
+                        (type === 'text' && responseType.indexOf('text') !== 0)) {
                     if (responseType.indexOf('text') === 0) {
                         if (responseType.indexOf('text/xml') === 0) {
                             fetch('resource');
@@ -256,9 +263,7 @@ function loadResource(resourceUrl, type, isTlResource) {
                         return;
                     }
                 }
-            } catch (e) {
-                // Just continue on a missing content-type header.
-            }
+            } catch (e) {}
             if (this.status === 200) {
                 if (type === 'text/css') {
                     parseResponse('styles');
@@ -269,13 +274,11 @@ function loadResource(resourceUrl, type, isTlResource) {
                 alert('HTTPError: ' + this.status + ' ' + this.statusText);
                 parseResponse();
             }
-            changeLoadingStatus();
+            changeLoadingStatus(false);
         };
         xhrReq.open('GET', url);
-        if (!isLoading) {
-            changeLoadingStatus();
-            changeBorderColor('green', true);
-        }
+        changeLoadingStatus(true);
+        changeBorderColor('green', true);
         xhrReq.send();
     };
     if (typeof type === 'string') {
@@ -302,25 +305,26 @@ function loadResource(resourceUrl, type, isTlResource) {
  * @param msgEv {object}, a message event.
  * @return void.
  */
-window.onmessage = function (msgEv) {
+window.onmessage = function(msgEv) {
     'use strict';
-    var type, linkUrl, spinner;
     var data = msgEv.data;
-    spinner = data.spinner;
+    var type = data.type;
+    var spinner = data.spinner;
+    var linkUrl = normalizeURL(data.linkUrl);
+    
     if (spinner) {
         switch (spinner) {
             case 'on':
-                changeLoadingStatus();
+                changeLoadingStatus(true);
                 changeBorderColor('green', true);
                 break;
             case 'off':
-                changeLoadingStatus();
+                changeLoadingStatus(false);
                 break;
         }
         return;
     }
-    type = data.type;
-    linkUrl = normalizeURL(data.linkUrl);
+
     if (linkUrl) {
         // Reset the view.
         passData('', '');

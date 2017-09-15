@@ -1,38 +1,50 @@
 var proxyInpt = document.getElementById('proxyInpt');
-var proxyUri = 'https://feedback.googleusercontent.com/gadgets/proxy?container=fbk&url=';
+var hstsListInpt = document.getElementById('hstsListInpt');
+var proxyUri = 'https://feedback.googleusercontent.com/gadgets/proxy?' +
+    'container=fbk&url=';
+var hstsList = ['torproject.org', '*.torproject.org', '*.wikipedia.org',
+    '*.facebook.com', 'github.com', 'twitter.com'];
 
 /**
- * Change the boxShadow's color value of `proxyInpt.style`.
+ * Change the `boxShadow` style property of a given element.
+ * @param inputElement {object}, an `HTMLInputElement` object.
  * @param color {string}, a color name.
  * @return void.
  */
-function setBoxShadowColor (color) {
-    proxyInpt.style.boxShadow = '0 0 10px ' + color + ' inset';
+function setBoxShadowColor(inputElement, color) {
+    'use strict';
+    inputElement.style.boxShadow = '0 0 10px ' + color + ' inset';
 }
 
 /**
- * Save options to `chrome.storage`.
+ * Save options to local storage.
  * @return void.
  */
 function saveOptions() {
+    'use strict';
     chrome.storage.local.set({
-        proxy: proxyInpt.value
+        proxy: proxyInpt.value,
+        hstsList: hstsListInpt.value.replace(/\s/g, '').split(',')
     });
 }
 
 /**
- * Restore options from `chrome.storage`.
- * @param reset {boolean} optional, restores default options.
+ * Restore settings from local storage.
+ * @param reset {boolean} optional, reset default settings.
  * @return void.
  */
-function restoreOptions(reset) {
+function restoreSettings(reset) {
+    'use strict';
     if (reset === true) {
         proxyInpt.value = proxyUri;
+        hstsListInpt.value = hstsList;
     } else {
         chrome.storage.local.get({
-            proxy: proxyUri
+            proxy: proxyUri,
+            hstsList: hstsList
         }, function(items) {
             proxyInpt.value = items.proxy;
+            hstsListInpt.value = items.hstsList;
         });
     }
 }
@@ -44,6 +56,7 @@ function restoreOptions(reset) {
  * @return void.
  */
 function updateStatus(message, isPersistent) {
+    'use strict';
     var interval;
     var status = document.getElementById('status');
     status.textContent = message;
@@ -64,38 +77,47 @@ function updateStatus(message, isPersistent) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
+document.addEventListener('DOMContentLoaded', restoreSettings);
 document.getElementById('reset').addEventListener('click', function(ev) {
-    restoreOptions(true);
+    'use strict';
+    restoreSettings(true);
     saveOptions();
     updateStatus('Options reset.');
-    setBoxShadowColor('white');
+    setBoxShadowColor(proxyInpt, 'white');
+    setBoxShadowColor(hstsListInpt, 'white');
     ev.preventDefault();
 });
 document.getElementById('form').addEventListener('submit', function(ev) {
+    'use strict';
     var proxy = proxyInpt.value;
     var xhrReq = new XMLHttpRequest();
     /**
      * Indicate a validation error.
      * @return void.
      */
-    var showError = function() {
+    var showError = function(message) {
         updateStatus("Couldn't validate proxy server.");
-        setBoxShadowColor('red');
+        setBoxShadowColor(proxyInpt, 'red');
     };
-    setBoxShadowColor('yellow');
+
+    setBoxShadowColor(hstsListInpt, 'green');
+    setBoxShadowColor(proxyInpt, 'yellow');
     updateStatus('Validating proxy...', true);
+    
     xhrReq.onload = function() {
         if (this.status === 200) {
             saveOptions();
             updateStatus('Changes saved.');
-            setBoxShadowColor('green');
+            setBoxShadowColor(proxyInpt, 'green');
         } else {
             showError();
         }
     };
-    xhrReq.onerror = showError;
+    xhrReq.onerror = function() {
+        showError();
+    };
     xhrReq.open('GET', proxy + 'http://example.com');
     xhrReq.send();
+
     ev.preventDefault();
 });

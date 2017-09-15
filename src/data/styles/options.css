@@ -17,7 +17,7 @@ body {
     min-width: 800px;
 }
 
-#proxyInpt {
+.input.text {
     left: 10px;
     position: relative;
 }
@@ -27,7 +27,6 @@ span[data-help] {
     cursor: help;
     left: 10px;
     position: relative;
-    z-index: 2;
 }
 
 span[data-help]:hover::after {
@@ -42,5 +41,5 @@ span[data-help]:hover::after {
     padding: 10px;
     position: absolute;
     text-align: center;
-    z-index: 3;
+    z-index: 2;
 }

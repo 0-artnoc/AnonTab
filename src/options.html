@@ -9,10 +9,17 @@
 </head>
 
 <body>
-    Proxy URI:
     <form id="form">
-        <input type="url" pattern="https://.+" id="proxyInpt" class="input" value="">
-        <span data-help="Make sure the proxy server returns a proper Access-Control-Allow-Origin HTTP header, and that the proxy URI follows this pattern: https://proxy.tld/?url=">?</span>
+        Proxy URI:
+        <div>
+            <input type="url" pattern="https://.+" id="proxyInpt" class="input text">
+            <span data-help="Make sure the proxy server returns a proper Access-Control-Allow-Origin HTTP header, and that the proxy URI follows this pattern: https://proxy.tld/?url=">?</span>
+        </div>
+        HSTS Domains:
+        <div>
+            <input type="text" pattern="[*\w\s.,-]*" id="hstsListInpt" class="input text" spellcheck="false">
+            <span data-help="Values are expected to be in the following format: example.tld,*.example.tld">?</span>
+        </div>
         <div id="status"></div>
         <button id="save" class="input">Validate and Save</button>
         <button id="reset" class="input">Reset</button>
