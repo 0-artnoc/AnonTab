@@ -164,7 +164,11 @@ function proxUri(uri) {
         uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
         uri.startsWith('/') ? baseURL.match(hostRe) + uri :
         baseURL.match(hostRe) + '/' + uri;
-    uri = new URL(uri);
+    try {
+        uri = new URL(uri);
+    } catch(e) {
+        return '#';
+    }
     return proxy + encodeURIComponent(uri);
 }
 
