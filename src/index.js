@@ -33,7 +33,12 @@ function openTab(linkUrl, flag) {
             chrome.tabs.onUpdated.addListener(function listener(tabId_, changeInfo) {
                 if (tabId === tabId_ && changeInfo.status === 'complete') {
                     chrome.tabs.onUpdated.removeListener(listener);
-                    chrome.tabs.sendMessage(tabId, {linkUrl: linkUrl, type: null});
+                    setTimeout(function() {
+                        chrome.tabs.sendMessage(tabId, {
+                            linkUrl: linkUrl,
+                            type: null
+                      });
+                    });
                 }
             });
         }
