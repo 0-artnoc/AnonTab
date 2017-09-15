@@ -47,7 +47,7 @@ function normalizeURL(url) {
          */
         var isHstsCompat = function(domainPtrn) {
             domainPtrn = domainPtrn.replace(/\./g, '\\.').replace(/\*/g, '[\\w.-]*');
-            domainPtrn = new RegExp(domainPtrn);
+            domainPtrn = new RegExp('^' + domainPtrn + '$');
             if (domainPtrn.test(url.hostname)) {
                 return true;
             }
