@@ -16,7 +16,7 @@ function passData(data) {
  * @param msgEv {object}, a message event.
  * @return void.
  */
-window.onmessage = function (msgEv) {
+window.onmessage = function(msgEv) {
     'use strict';
     var styleEl;
     var data = msgEv.data;
@@ -122,15 +122,22 @@ window.onmessage = function (msgEv) {
         el.src = url;
         el.controls = true;
         el.onload = function() {
-            passData({spinner: 'off'});
+            passData({
+                spinner: 'off'
+            });
         };
         el.onerror = function() {
             url = decodeURIComponent(url.replace(proxy, ''));
-            passData({linkUrl: url, type: 'text'});
+            passData({
+                linkUrl: url,
+                type: 'text'
+            });
         };
         setBody('');
         document.body.appendChild(el);
-        passData({spinner: 'on'});
+        passData({
+            spinner: 'on'
+        });
     };
     if (msgOrigin !== origin) {
         return;
@@ -143,9 +150,7 @@ window.onmessage = function (msgEv) {
         styleEl = document.createElement('style');
         styleEl.innerHTML = dataVal;
         document.body.appendChild(styleEl);
-    } else if (type === 'img' ||
-                  type === 'audio' ||
-                      type === 'video') {
+    } else if (type === 'img' || type === 'audio' || type === 'video') {
         viewMedia(dataVal, type);
     } else if (type === 'resource') {
         setBody(dataVal, true);
@@ -170,7 +175,9 @@ window.onhashchange = function() {
     var hash = location.hash.slice(1);
     if (hash) {
         if (hash.indexOf('#') !== 0) {
-            passData({linkUrl: hash});
+            passData({
+                linkUrl: hash
+            });
         } else {
             anchor = document.getElementsByName(hash.slice(1))[0];
             if (typeof anchor === 'object') {

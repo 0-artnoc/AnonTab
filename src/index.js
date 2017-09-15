@@ -22,12 +22,17 @@ function openTab(linkUrl, flag) {
                 'since': (new Date()).getTime() - 1000
             });
             while (index--) {
-                chrome.history.deleteUrl({url: extensionURL + fileNames[index]});
+                chrome.history.deleteUrl({
+                    url: extensionURL + fileNames[index]
+                });
             }
         }
     };
 
-    chrome.tabs.create({active: true, url: 'main.html'}, function(tab) {
+    chrome.tabs.create({
+        active: true,
+        url: 'main.html'
+    }, function(tab) {
         tabId = tab.id;
         if (flag === 'contextMenu') {
             chrome.tabs.onUpdated.addListener(function listener(tabId_, changeInfo) {
@@ -51,7 +56,7 @@ chrome.browserAction.onClicked.addListener(openTab);
 chrome.contextMenus.create({
     'title': 'Open Link in AnonTab',
     'contexts': ['link'],
-    'onclick' : function(params) {
+    'onclick': function(params) {
         'use strict';
         openTab(params.linkUrl, 'contextMenu');
     }
