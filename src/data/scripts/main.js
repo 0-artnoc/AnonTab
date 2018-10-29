@@ -158,12 +158,11 @@ function changeBorderColor(color, loadingFlag) {
  */
 function proxUri(uri) {
     'use strict';
-    var baseURL = navBar.value;
-    var hostRe = /\w+:\/\/[^\/]+/;
+    var baseURL = new URL(navBar.value);
     uri = /^\w+:\/\//.test(uri) ? uri :
-        uri.startsWith('//') ? baseURL.match(/\w+:/) + uri :
-        uri.startsWith('/') ? baseURL.match(hostRe) + uri :
-        baseURL.match(hostRe) + '/' + uri;
+        uri.startsWith('//') ? baseURL.protocol + uri :
+        uri.startsWith('/') ? baseURL.origin + uri :
+        baseURL.href.slice(0, baseURL.href.lastIndexOf('/') + 1) + uri;
     try {
         uri = new URL(uri);
     } catch(e) {
@@ -314,8 +313,8 @@ window.onmessage = function(msgEv) {
     var data = msgEv.data;
     var type = data.type;
     var spinner = data.spinner;
-    var linkUrl = normalizeURL(data.linkUrl);
-    
+    var linkUrl = normalizeURL(data.linkUrl) || data.linkUrl;
+
     if (spinner) {
         switch (spinner) {
             case 'on':
@@ -330,16 +329,14 @@ window.onmessage = function(msgEv) {
     }
 
     if (linkUrl) {
+        navBar.value = linkUrl;
         // Reset the view.
         passData('', '');
         // Terminate any ongoing connections.
         stopLoading();
         // Load the new resource.
         loadResource(linkUrl, type, true);
-    } else {
-        linkUrl = data.linkUrl;
     }
-    navBar.value = linkUrl;
     deleteUrl(linkUrl);
 };
 

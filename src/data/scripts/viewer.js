@@ -104,7 +104,7 @@ window.onmessage = function(msgEv) {
         };
         while (index--) {
             form = forms[index];
-            if (form.method === 'get' && form.action) {
+            if (form.method === 'get' && form.action.startsWith(proxy)) {
                 form.onsubmit = submitForm;
             } else {
                 form.onsubmit = handleForm;

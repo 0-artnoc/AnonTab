@@ -11,7 +11,8 @@ function proxify(raw, proxy) {
     var config = {
         ADD_TAGS: ['link', 'video', 'audio'],
         FORBID_ATTR: ['xlink:href'],
-        WHOLE_DOCUMENT: true
+        WHOLE_DOCUMENT: true,
+        FORCE_BODY: true
     };
 
     /**
@@ -24,13 +25,13 @@ function proxify(raw, proxy) {
     var proxStyles = function(output, styles) {
         var prop, pVal, src;
         // The regex to detect external content.
-        var regex = /(?:url\(["']?)(?!data:)([^'")]+)/gi;
+        var regex = /(url\(["']?)(?!data:)([^'")]+)/gi;
         var pIndex = styles.length;
         while (pIndex--) {
             prop = styles[pIndex];
             pVal = styles[styles[pIndex]] || '';
             if (pVal.match(regex)) {
-                src = regex.exec(pVal)[1];
+                src = regex.exec(pVal)[2];
                 pVal = pVal.replace(regex, '$1' + window.proxUri(src));
                 output.push(prop + ':' + pVal + ';');
                 regex.lastIndex = 0;
