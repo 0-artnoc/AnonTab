@@ -2,6 +2,7 @@ var proxy, hstsList;
 var isLoading = false;
 var viewer = document.getElementById('viewer');
 var navBar = document.getElementById('navbar');
+var lightbulb = document.getElementById('lightbulb');
 chrome.storage.local.get({
     proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?' +
         'container=fbk&url=',
@@ -361,3 +362,12 @@ function initNav(ev) {
 /* Register event listeners to handle user-initiated navigations. */
 document.getElementById('navform').onsubmit = initNav;
 chrome.runtime.onMessage.addListener(initNav);
+
+lightbulb.onclick = function() {
+    var style = document.documentElement.style;
+    if (style.filter === 'invert(1)') {
+        style.filter = 'invert(0)';
+    } else {
+        style.filter = 'invert(1)';
+    }
+};

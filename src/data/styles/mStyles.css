@@ -1,5 +1,6 @@
 html {
     height: 100%;
+    filter: invert(1);
 }
 
 body {
@@ -39,4 +40,12 @@ body {
     border: 2px dashed silver;
     height: 93%;
     width: 98%;
+}
+
+#lightbulb {
+    cursor: pointer;
+    float: right;
+    position: fixed;
+    right: 10px;
+    top: 10px;
 }
