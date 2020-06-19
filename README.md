@@ -5,7 +5,7 @@ let AnonTab = ``` `${NoScript + HTTPSEverywhere + PrivateBrowsing + proxy}` ```;
 
 AnonTab allows you to browse safely, anonymously and privately to any suspicious URLs from within your everyday browser!
 
-This extension simply equips your web browser with a special tab in which your real IP address is masked via public Google proxy servers; all connections are SSL/TLS encrypted. No tracking, no logs, no scripts and no history entries—totally off the record browsing. Fear not!
+This extension simply equips your web browser with a special tab in which your real IP address is masked via public proxy servers; all connections are SSL/TLS encrypted. No tracking, no logs, no scripts and no history entries—totally off the record browsing. Fear not!
 
 ___Built on top of [DOMPurify](https://github.com/cure53/DOMPurify).___
 
