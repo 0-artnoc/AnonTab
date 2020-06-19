@@ -4,8 +4,7 @@ var viewer = document.getElementById('viewer');
 var navBar = document.getElementById('navbar');
 var lightbulb = document.getElementById('lightbulb');
 chrome.storage.local.get({
-    proxy: 'https://feedback.googleusercontent.com/gadgets/proxy?' +
-        'container=fbk&url=',
+    proxy: 'https://api.allorigins.win/raw?url=',
     hstsList: ['torproject.org', '*.torproject.org', '*.wikipedia.org',
         '*.facebook.com', 'github.com', 'twitter.com']
 }, function(items) {
