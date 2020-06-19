@@ -6,7 +6,7 @@
   "incognito": "spanning",
   "options_page": "options.html",
   "description": "let AnonTab = `${NoScript + HTTPSEverywhere + PrivateBrowsing + proxy}`;",
-  "content_security_policy": "default-src 'self'; object-src 'none'; connect-src https:; style-src 'self' 'unsafe-inline'; media-src data: https:; font-src data: https:; img-src 'self' data: https:",
+  "content_security_policy": "default-src 'self'; object-src 'none'; connect-src https:; style-src 'self' 'unsafe-inline'; media-src data: https:; font-src data: https:; img-src 'self' data: https:; base-uri 'none'",
   "background": {
     "scripts": ["./index.js"]
   },
