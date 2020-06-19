@@ -26,7 +26,7 @@ ___Built on top of [DOMPurify](https://github.com/cure53/DOMPurify).___
 <a href="https://raw.githubusercontent.com/0xsobky/AnonTab/master/screenshots/ipleaks.png" target="blank"><img width=50% src="https://raw.githubusercontent.com/0xsobky/AnonTab/master/screenshots/ipl_thumb.png" alt="Leakproof against IPLeaks"></img></a>
 
 ## Is it secure?
-Likely yes. Unless you can bypass both of [_DOMPurify_](https://github.com/cure53/DOMPurify) and the restricted [content security policy](https://github.com/0xSobky/AnonTab/blob/master/src/manifest.json#L9) in place.
+Likely yes. Unless you can bypass both of [_DOMPurify_](https://github.com/cure53/DOMPurify) and the restrictive [Content Security Policy](https://github.com/0xSobky/AnonTab/blob/master/src/manifest.json#L9) in place.
 
 ## Notes:
 * In Firefox, using the strict protection list for [tracking protection](https://support.mozilla.org/en-US/kb/tracking-protection-pbm#w_block-lists-in-firefox) can interfere with AnonTab.
