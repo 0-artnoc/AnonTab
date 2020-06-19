@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
   "name": "AnonTab",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "author": "@0xSobky",
-  "incognito": "split",
+  "incognito": "spanning",
   "options_page": "options.html",
   "description": "let AnonTab = `${NoScript + HTTPSEverywhere + PrivateBrowsing + proxy}`;",
   "content_security_policy": "default-src 'self'; object-src 'none'; connect-src https:; style-src 'self' 'unsafe-inline'; media-src data: https:; font-src data: https:; img-src 'self' data: https:",
