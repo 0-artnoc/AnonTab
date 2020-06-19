@@ -1,7 +1,6 @@
 var proxyInpt = document.getElementById('proxyInpt');
 var hstsListInpt = document.getElementById('hstsListInpt');
-var proxyUri = 'https://feedback.googleusercontent.com/gadgets/proxy?' +
-    'container=fbk&url=';
+var proxyUri = 'https://api.allorigins.win/raw?url=';
 var hstsList = ['torproject.org', '*.torproject.org', '*.wikipedia.org',
     '*.facebook.com', 'github.com', 'twitter.com'];
 
